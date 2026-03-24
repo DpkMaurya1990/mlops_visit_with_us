@@ -2,19 +2,24 @@ import os
 from huggingface_hub import HfApi, login
 from dotenv import load_dotenv
 
-load_dotenv()
+
+# LOAD The token from the .env file
+load_dotenv()       
 token = os.getenv("HF_TOKEN")
 
 if not token:
     print("Error: .env file mein HF_TOKEN nahi mila!")
 else:
     login(token=token)
+    # Hugging Face Hub API initialization
     api = HfApi()
 
-    # Settings: Yahan apna sahi username aur file name dalein
-    repo_id = "dpkmaurya2025/mlops-visit-with-us-dataset" 
-    local_file = "E:\\GL\\AdvanceMLOps\\tourism.csv" # <--- Check this name!
 
+    repo_id = "dpkmaurya2025/mlops-visit-with-us-dataset" 
+    local_file = "E:\\GL\\AdvanceMLOps\\tourism.csv" 
+
+
+    # UPloading the file to Hugging Face Hub
     try:
         api.create_repo(repo_id=repo_id, repo_type="dataset", exist_ok=True)
         api.upload_file(
