@@ -1,0 +1,5 @@
+.env
+mlops/
+__pycache__/
+*.pyc
+.DS_Store
