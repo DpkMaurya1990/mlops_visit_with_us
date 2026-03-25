@@ -75,4 +75,4 @@ jobs:
     - name: Deploy to Space
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      run: python deploy.py
+    run: python deploy.py
