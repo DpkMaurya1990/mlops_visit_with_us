@@ -2,6 +2,8 @@ import os
 import pandas as pd
 import joblib
 import json
+import mlflow
+import mlflow.sklearn
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report
@@ -11,19 +13,32 @@ from dotenv import load_dotenv
 
 load_dotenv()
 token = os.getenv("HF_TOKEN")
-login(token=token)
+if token:
+    login(token=token)
 
 api = HfApi()
 repo_id = "dpkmaurya2025/mlops-visit-with-us-dataset" 
 model_repo_id = "dpkmaurya2025/mlops-visit-with-us-model"
 
-# Load the train and test data from the Hugging Face data space
+# MLflow Configuration
+username = os.getenv("MLFLOW_TRACKING_USERNAME", "")
+password = os.getenv("MLFLOW_TRACKING_PASSWORD", "")
+tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "")
+
+os.environ['MLFLOW_TRACKING_USERNAME'] = username
+os.environ['MLFLOW_TRACKING_PASSWORD'] = password
+
+if tracking_uri:
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment("Visit_With_Us_Experiment")
+
+# Load data
 train_path = hf_hub_download(repo_id=repo_id, filename="train.csv", repo_type="dataset")
 test_path = hf_hub_download(repo_id=repo_id, filename="test.csv", repo_type="dataset")
 train_df = pd.read_csv(train_path)
 test_df = pd.read_csv(test_path)
 
-# Preprocessing & Encoding
+# Preprocessing
 cat_cols = train_df.select_dtypes(include=['object']).columns
 for col in cat_cols:
     le = LabelEncoder()
@@ -35,42 +50,29 @@ y_train = train_df['ProdTaken']
 X_test = test_df.drop('ProdTaken', axis=1)
 y_test = test_df['ProdTaken']
 
-# Define Model and Parameters for Tuning
-rf = RandomForestClassifier(random_state=42)
-param_grid = {
-    'n_estimators': [50, 100],
-    'max_depth': [5, 10, None],
-    'min_samples_split': [2, 5]
-}
+# MLflow Training Block
+with mlflow.start_run():
+    rf = RandomForestClassifier(random_state=42)
+    param_grid = {'n_estimators': [50, 100], 'max_depth': [5, 10]}
 
-# Tune the Model (Grid Search) with defined parameters
-print("Tuning model with GridSearchCV...")
-grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=3, scoring='accuracy')
-grid_search.fit(X_train, y_train)
+    grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=3)
+    grid_search.fit(X_train, y_train)
 
-# Log all Tuned Parameters
-best_params = grid_search.best_params_
-print(f"Best Parameters Found: {best_params}")
+    best_model = grid_search.best_estimator_
+    acc = accuracy_score(y_test, best_model.predict(X_test))
 
-# Saving parameters to a JSON file for "Logging"
-with open("metrics.json", "w") as f:
-    json.dump({"best_params": best_params, "best_score": grid_search.best_score_}, f)
+    # Log to MLflow
+    mlflow.log_params(grid_search.best_params_)
+    mlflow.log_metric("accuracy", acc)
+    mlflow.sklearn.log_model(best_model, "model")
 
-# Evaluate Model Performance
-best_model = grid_search.best_estimator_
-y_pred = best_model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
-report = classification_report(y_test, y_pred)
+    # Save metrics locally
+    with open("metrics.json", "w") as f:
+        json.dump({"best_params": grid_search.best_params_, "accuracy": acc}, f)
 
-print(f"Final Test Accuracy: {accuracy:.4f}")
-print("\nClassification Report:\n", report)
-
-# 7. Register the BEST model in HF Model Hub
+# Save and Upload
 joblib.dump(best_model, "model.joblib")
-api.create_repo(repo_id=model_repo_id, repo_type="model", exist_ok=True)
 api.upload_file(path_or_fileobj="model.joblib", path_in_repo="model.joblib", repo_id=model_repo_id, repo_type="model")
-
-# Also upload the metrics/logs
 api.upload_file(path_or_fileobj="metrics.json", path_in_repo="metrics.json", repo_id=model_repo_id, repo_type="model")
 
-print(f"Complete: Best model and logs registered at {model_repo_id}")
+print("✅ Training and MLflow Logging Complete!")

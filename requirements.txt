@@ -4,3 +4,5 @@ joblib
 scikit-learn
 huggingface_hub
 python-dotenv
+mlflow
+dagshub
