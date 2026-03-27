@@ -1,18 +1,23 @@
-FROM python:3.11-slim
+%%writefile Dockerfile
+FROM python:3.9-slim
 
-# User 1000 standard hai Hugging Face ke liye
-RUN useradd -m -u 1000 user
-USER user
-ENV PATH="/home/user/.local/bin:${PATH}"
+# System updates
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /home/user/app
+WORKDIR /app
 
 # Copy and install dependencies
-COPY --chown=user requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the files
-COPY --chown=user . .
+COPY . .
 
-# Explicitly use port 7860 (Hugging Face default)
-CMD ["streamlit", "run", "app.py", "--server.port", "7860", "--server.address", "0.0.0.0", "--server.headless", "true"]
+# Set Port and Host
+ENV STREAMLIT_SERVER_PORT=7860
+ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
+
+EXPOSE 7860
+
+# CMD to run the app
+CMD ["streamlit", "run", "app.py"]
