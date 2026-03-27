@@ -38,6 +38,13 @@ test_path = hf_hub_download(repo_id=repo_id, filename="test.csv", repo_type="dat
 train_df = pd.read_csv(train_path)
 test_df = pd.read_csv(test_path)
 
+# --- NEW: Feature Selection to match Streamlit App ---
+selected_features = ['Age', 'MonthlyIncome', 'Passport', 'NumberOfTrips', 'PitchSatisfactionScore', 'Designation']
+target = 'ProdTaken'
+train_df = train_df[selected_features + [target]]
+test_df = test_df[selected_features + [target]]
+# -----------------------------------------------------
+
 # Preprocessing
 cat_cols = train_df.select_dtypes(include=['object']).columns
 for col in cat_cols:
@@ -45,14 +52,15 @@ for col in cat_cols:
     train_df[col] = le.fit_transform(train_df[col].astype(str))
     test_df[col] = le.transform(test_df[col].astype(str))
 
-X_train = train_df.drop('ProdTaken', axis=1)
-y_train = train_df['ProdTaken']
-X_test = test_df.drop('ProdTaken', axis=1)
-y_test = test_df['ProdTaken']
+X_train = train_df.drop(target, axis=1)
+y_train = train_df[target]
+X_test = test_df.drop(target, axis=1)
+y_test = test_df[target]
 
 # MLflow Training Block
 with mlflow.start_run():
-    rf = RandomForestClassifier(random_state=42, class_weight='balanced')  #Adding class_weight to handle potential class imbalance in the dataset 
+    # class_weight='balanced' model ko Likely (1) classes par zyada dhyan dene ko bolega
+    rf = RandomForestClassifier(random_state=42, class_weight='balanced')
     param_grid = {'n_estimators': [50, 100], 'max_depth': [5, 10]}
 
     grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=3)
@@ -64,15 +72,15 @@ with mlflow.start_run():
     # Log to MLflow
     mlflow.log_params(grid_search.best_params_)
     mlflow.log_metric("accuracy", acc)
-    mlflow.sklearn.log_model(best_model, name="model")
+    mlflow.sklearn.log_model(best_model, "model")
 
     # Save metrics locally
     with open("metrics.json", "w") as f:
         json.dump({"best_params": grid_search.best_params_, "accuracy": acc}, f)
 
 # Save and Upload
-joblib.dump(best_model, "model.joblib") #joblib.dump actually overwrites the file if it already exists, so no need to check for existence
+joblib.dump(best_model, "model.joblib")
 api.upload_file(path_or_fileobj="model.joblib", path_in_repo="model.joblib", repo_id=model_repo_id, repo_type="model")
 api.upload_file(path_or_fileobj="metrics.json", path_in_repo="metrics.json", repo_id=model_repo_id, repo_type="model")
 
-print("✅ Training and MLflow Logging Complete!")
+print("✅ Training Complete with Aligned Features!")

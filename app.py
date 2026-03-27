@@ -6,7 +6,7 @@ from huggingface_hub import hf_hub_download
 
 st.set_page_config(page_title="Visit With Us Predictor", layout="centered")
 
-# Load the saved model from the Hugging Face model hub
+# Load the saved model
 @st.cache_resource
 def load_model_from_hf():
     repo_id = "dpkmaurya2025/mlops-visit-with-us-model" 
@@ -15,50 +15,42 @@ def load_model_from_hf():
 
 model = load_model_from_hf()
 
-#All the features used in training the model 
-FEATURES = [
-    'Unnamed: 0','Age', 'TypeofContact', 'CityTier', 'DurationOfPitch', 'Occupation',
-    'Gender', 'NumberOfPersonVisiting', 'NumberOfFollowups', 'ProductPitched',
-    'PreferredPropertyStar', 'MaritalStatus', 'NumberOfTrips', 'Passport',
-    'PitchSatisfactionScore', 'OwnCar', 'NumberOfChildrenVisiting',
-    'Designation', 'MonthlyIncome'
-]
+# Match exact sequence from train_model.py
+FEATURES = ['Age', 'MonthlyIncome', 'Passport', 'NumberOfTrips', 'PitchSatisfactionScore', 'Designation']
 
 st.title("🌲 Visit With Us: Wellness Package Predictor")
 
-# 2. UI Inputs (Important ones for User)
 col1, col2 = st.columns(2)
 with col1:
     age = st.number_input("Age", 18, 70, 30)
-    income = st.number_input("Monthly Income", 0, 100000, 25000)
+    income = st.number_input("Monthly Income", 0, 150000, 25000)
     passport = st.selectbox("Has Passport? (1=Yes, 0=No)", [0, 1])
 with col2:
-    trips = st.number_input("Number of Trips", 0, 10, 2)
+    trips = st.number_input("Number of Trips", 0, 15, 2)
     satisfaction = st.slider("Pitch Satisfaction Score", 1, 5, 3)
     designation = st.selectbox("Designation", ["Executive", "Manager", "Senior Manager", "AVP", "VP"])
 
-# 3. Create a Full Feature DataFrame
 if st.button("Predict Purchase"):
-    # Dictionary with default values
-    input_data = {feat: 0 for feat in FEATURES} # Start with 0 or average for all features
+    # Encoding logic (Should match LabelEncoder from training)
+    desig_mapping = {"Executive": 0, "Manager": 1, "Senior Manager": 2, "AVP": 3, "VP": 4}
 
-    #  Get the inputs and save them into a dataframe with the same structure as training data
-    input_data.update({
-        'Unnamed: 0': 0,
+    input_data = {
         'Age': age,
         'MonthlyIncome': income,
         'Passport': passport,
         'NumberOfTrips': trips,
         'PitchSatisfactionScore': satisfaction,
-        'Designation': 0 if designation == "Executive" else 1 # Simple encoding match
-    })
+        'Designation': desig_mapping.get(designation, 0)
+    }
 
-    # Convert to DataFrame with EXACT same column order as training
+    # Create DataFrame and ensure column order
     input_df = pd.DataFrame([input_data])[FEATURES]
 
+    # Get prediction and probability
     prediction = model.predict(input_df)
+    prob = model.predict_proba(input_df)[0][1] # Probability of buying
 
     if prediction[0] == 1:
-        st.success("✅ Prediction: Customer is LIKELY to buy!")
+        st.success(f"✅ Prediction: Customer is LIKELY to buy! (Confidence: {prob*100:.1f}%)")
     else:
-        st.error("❌ Prediction: Customer is UNLIKELY to buy.")
+        st.error(f"❌ Prediction: Customer is UNLIKELY to buy. (Confidence: {(1-prob)*100:.1f}%)")
