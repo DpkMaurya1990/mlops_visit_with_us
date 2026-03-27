@@ -52,7 +52,7 @@ y_test = test_df['ProdTaken']
 
 # MLflow Training Block
 with mlflow.start_run():
-    rf = RandomForestClassifier(random_state=42)
+    rf = RandomForestClassifier(random_state=42, class_weight='balanced')  #Adding class_weight to handle potential class imbalance in the dataset 
     param_grid = {'n_estimators': [50, 100], 'max_depth': [5, 10]}
 
     grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=3)
@@ -64,14 +64,14 @@ with mlflow.start_run():
     # Log to MLflow
     mlflow.log_params(grid_search.best_params_)
     mlflow.log_metric("accuracy", acc)
-    mlflow.sklearn.log_model(best_model, "model")
+    mlflow.sklearn.log_model(best_model, name="model")
 
     # Save metrics locally
     with open("metrics.json", "w") as f:
         json.dump({"best_params": grid_search.best_params_, "accuracy": acc}, f)
 
 # Save and Upload
-joblib.dump(best_model, "model.joblib")
+joblib.dump(best_model, "model.joblib") #joblib.dump actually overwrites the file if it already exists, so no need to check for existence
 api.upload_file(path_or_fileobj="model.joblib", path_in_repo="model.joblib", repo_id=model_repo_id, repo_type="model")
 api.upload_file(path_or_fileobj="metrics.json", path_in_repo="metrics.json", repo_id=model_repo_id, repo_type="model")
 

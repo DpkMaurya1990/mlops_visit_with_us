@@ -50,7 +50,7 @@ if 'CustomerID' in df_cleaned.columns:
 
 # 3. Split the cleaned dataset into training and testing sets, and save them locally
 print("\n--- Step 3: Splitting Data ---")
-train_df, test_df = train_test_split(df_cleaned, test_size=0.2, random_state=42)
+train_df, test_df = train_test_split(df_cleaned, test_size=0.2, random_state=42, stratify=df_cleaned['ProdTaken'])
 print(f"Train size: {len(train_df)}, Test size: {len(test_df)}")
 
 train_df.to_csv("E:\\GL\\AdvanceMLOps\\train.csv", index=False)
