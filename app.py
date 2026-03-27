@@ -32,7 +32,13 @@ with col2:
 
 if st.button("Predict Purchase"):
     # Encoding logic (Should match LabelEncoder from training)
-    desig_mapping = {"Executive": 0, "Manager": 1, "Senior Manager": 2, "AVP": 3, "VP": 4}
+    desig_mapping = {
+    "AVP": 0,
+    "Executive": 1, 
+    "Manager": 2, 
+    "Senior Manager": 3, 
+    "VP": 4
+}
 
     input_data = {
         'Age': age,
