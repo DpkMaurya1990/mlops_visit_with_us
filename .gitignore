@@ -3,5 +3,3 @@ mlops/
 __pycache__/
 *.pyc
 .DS_Store
-
-model.joblib

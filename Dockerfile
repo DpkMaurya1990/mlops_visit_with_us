@@ -15,5 +15,5 @@ ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 
 EXPOSE 7860
 
-# CMD to run the app
-CMD ["streamlit", "run", "app.py", "--server.port=7860", "--server.address=0.0.0.0"]
+# Hinglish: Isse container turant kill nahi hoga agar streamlit me koi choti error aaye
+CMD ["sh", "-c", "streamlit run app.py --server.port=7860 --server.address=0.0.0.0"]
