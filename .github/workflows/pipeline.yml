@@ -52,12 +52,12 @@ jobs:
       with:
         python-version: '3.11'
     - name: Install Dependencies
-      run: pip install -r requirements.txt    
+      run: pip install -r requirements-training.txt    
     - name: Train Model
       env:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
       run: |
-        pip install -r requirements.txt
+        pip install -r requirements-training.txt
         python train_model.py
 
   # Stage 4: Deployment & Hosting
