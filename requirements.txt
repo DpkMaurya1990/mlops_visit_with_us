@@ -1,8 +1,9 @@
 streamlit
 pandas
 joblib
-scikit-learn==1.2.2
+scikit-learn
 huggingface_hub
 python-dotenv
 mlflow
 dagshub
+numpy==1.24.3
