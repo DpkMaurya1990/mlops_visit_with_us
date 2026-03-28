@@ -16,7 +16,7 @@ else:
 
 
     repo_id = "dpkmaurya2025/mlops-visit-with-us-dataset" 
-    local_file = "E:\\GL\\admlops2\\tourism.csv" 
+    local_file = "E:\\GL\\AdvanceMLOps\\tourism.csv" 
 
 
     # UPloading the file to Hugging Face Hub
