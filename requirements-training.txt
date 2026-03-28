@@ -1,0 +1,9 @@
+pandas
+scikit-learn==1.6.0
+huggingface_hub
+python-dotenv
+mlflow
+dagshub
+numpy
+joblib
+xgboost
