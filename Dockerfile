@@ -1,8 +1,4 @@
-%%writefile Dockerfile
 FROM python:3.9-slim
-
-# System updates
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -20,4 +16,4 @@ ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 EXPOSE 7860
 
 # CMD to run the app
-CMD ["streamlit", "run", "app.py"]
+CMD ["streamlit", "run", "app.py", "--server.port=7860", "--server.address=0.0.0.0"]

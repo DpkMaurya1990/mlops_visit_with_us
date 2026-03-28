@@ -1,12 +1,9 @@
 ---
-title: Visit With Us
+title: Mlops Visit With Us
 emoji: 🌲
 colorFrom: green
 colorTo: blue
 sdk: docker
-pinned: false
 app_port: 7860
+pinned: false
 ---
-
-# Visit With Us - Wellness Package Predictor
-This is an MLOps project for predicting travel package purchases.

@@ -9,9 +9,13 @@ st.set_page_config(page_title="Visit With Us Predictor", layout="centered")
 # Load the saved model
 @st.cache_resource
 def load_model_from_hf():
-    repo_id = "dpkmaurya2025/mlops-visit-with-us-model" 
-    model_path = hf_hub_download(repo_id=repo_id, filename="model.joblib", repo_type="model")
-    return joblib.load(model_path)
+    try:
+        repo_id = "dpkmaurya2025/mlops-visit-with-us-model" 
+        model_path = hf_hub_download(repo_id=repo_id, filename="model.joblib", repo_type="model")
+        return joblib.load(model_path)
+    except Exception as e:
+        st.error(f"Error loading model: {e}")
+        return None
 
 model = load_model_from_hf()
 
