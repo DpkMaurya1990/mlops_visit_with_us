@@ -69,10 +69,10 @@ with mlflow.start_run():
     best_model = grid_search.best_estimator_
     acc = accuracy_score(y_test, best_model.predict(X_test))
 
+
     # Log to MLflow
     mlflow.log_params(grid_search.best_params_)
     mlflow.log_metric("accuracy", acc)
-    mlflow.sklearn.log_model(best_model, "model")
 
     # Save metrics locally
     with open("metrics.json", "w") as f:
