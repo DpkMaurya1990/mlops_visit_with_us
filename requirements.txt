@@ -4,6 +4,4 @@ joblib
 scikit-learn
 huggingface_hub
 python-dotenv
-mlflow
-dagshub
-numpy==1.24.3
+numpy
