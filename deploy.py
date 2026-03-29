@@ -7,7 +7,7 @@ token = os.getenv("HF_TOKEN")
 login(token=token)
 
 api = HfApi()
-space_id = "dpkmaurya2025/mlops-visit-with-us" 
+space_id = "dpkmaurya2025/mlops-visit-with-us-v2" 
 
 # README.md add kar diya hai list mein
 files_to_upload = ["app.py", "Dockerfile", "requirements.txt", "README.md"]
