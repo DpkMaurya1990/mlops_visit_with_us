@@ -6,12 +6,12 @@ import mlflow
 import mlflow.sklearn
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, precision_score, recall_score, f1_score
 from sklearn.preprocessing import LabelEncoder
 from huggingface_hub import hf_hub_download, HfApi, login
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv("E:\\GL\\clean-repo\\.env", override=True)
 token = os.getenv("HF_TOKEN")
 if token:
     login(token=token)
@@ -73,6 +73,12 @@ with mlflow.start_run():
     # Log to MLflow
     mlflow.log_params(grid_search.best_params_)
     mlflow.log_metric("accuracy", acc)
+    precision = precision_score(y_test, best_model.predict(X_test))
+    recall = recall_score(y_test, best_model.predict(X_test))
+    f1 = f1_score(y_test, best_model.predict(X_test))
+    mlflow.log_metric("precision", precision)
+    mlflow.log_metric("recall", recall)
+    mlflow.log_metric("f1_score", f1)
 
     # Save metrics locally
     with open("metrics.json", "w") as f:
